@@ -12,12 +12,14 @@
 #include <fstream>
 #include <string.h>
 #include <pthread.h>
+#include <gtkmm.h>
 
 #include "sock.cc"
 
 using namespace std;
 
 int sock1;
+void (*pf)(double t, bool done);
 
 typedef struct files{
 	int id;
@@ -91,6 +93,7 @@ void get_files(){
 			char buf[112 - cc];
 			cc = rec(sock1, buf, 112 - cc);
 			size -= cc;
+			
 		}
 	}
 }
@@ -109,7 +112,7 @@ void get_dirs(){
 		cout << d -> name << endl;
 		
 		size -= cc;
-		if(cc < sizeof(dirs)){
+		if(cc < (int)sizeof(dirs)){
 			cc = rec(sock1, buffer, sizeof(dirs) - cc);
 			size -= cc;
 		}
@@ -122,23 +125,42 @@ void send_msg(int m){
 	*s = m;
 	sendd(sock1, msg, 4);
 }
-
+int Size;
+int S;
+void *update(void *arg){
+	do{
+		if(Size >= 1)
+			pf((1.0/(double)S)*(S - Size), false);
+		else pf(1.0, false);
+		sleep(1);
+	}while(Size > 0);
+	pf(1.0, true);
+	return NULL;
+}
 void re_f(int sock, char *name){
 	ofstream w;
+	pthread_t pth2;
 	w.open(name, ios::out | ios::binary);
 	char sb[4];
 	rec(sock, sb, 4);
-	int size = *((int *)sb);
+	Size = *((int *)sb);
 	char buffer[512];
+	S = Size;
+	cout << "bb" << endl;
+	char m[0];
+	pthread_create(&pth2, NULL, update, (void *)m);
 	if (w.is_open()) {
-		while (size > 0) {
+		while (Size > 0) {
 			int cc = rec(sock, buffer, 512);
 			w.write(buffer, cc);
-			size -= cc;
+			Size -= cc;
+			cout << cc << endl;
+			//sleep(0.5);
 		}
 	}
 	close(sock);
 	w.close();
+	pf(1.0, true);
 }
 char *check(int id){
 	files *p = st;
@@ -155,6 +177,7 @@ void *rec_file(void *arg){
 	return NULL;
 }
 void reset(){
+	/*
 	files *p = st;
 	while(p != NULL){
 		files *q = p;
@@ -166,7 +189,7 @@ void reset(){
 		dirs *q2 = p2;
 		p2 = p2 -> next;
 		free(q2);
-	}
+	}*/
 	f = NULL;
 	d = NULL;
 	st = NULL;
@@ -177,14 +200,15 @@ void cd(int num){
 	send_msg(num);
 	reset();
 }
-void download(int num){
+void download(int num, void (*progress_func)(double t, bool done)){
 	send_msg(num);
 	pthread_t pth2;
 	char *c2 = check(num);
-	
+	pf = progress_func;
+	cout << "cc " << num << endl;
 	if(c2 != NULL){
 		pthread_create(&pth2, NULL, rec_file, (void *)c2);
-		pthread_join( pth2, NULL);
+		//pthread_join( pth2, NULL);
 	}
 }
 files *re_st(){
@@ -197,8 +221,9 @@ dirs *re_st2(){
 	get_dirs();
 	return st2;
 }
-void init(char *r_ip, char *l_ip){
+int init(char *r_ip, char *l_ip){
 	sock1 = connect_sock(r_ip, "3999");
-	if(sock1 == 0) exit(0);
+	if(sock1 == 0) return 0;
 	sendd(sock1, l_ip, 16);
+	return 1;
 }

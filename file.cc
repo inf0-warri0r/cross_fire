@@ -45,6 +45,9 @@ int c_d = 0;
 
 void add_f(char *name, int size){
 	files *temp = (files *)malloc(sizeof(files));
+	if(strlen(name) > 99){
+		name[99] = '\0';
+	}
 	strcpy(temp -> name, name);
 	temp -> id = c_f;
 	temp -> size = size;
@@ -61,6 +64,9 @@ void add_f(char *name, int size){
 
 void add_f_d(char *name){
 	dirs *temp = (dirs *)malloc(sizeof(dirs));
+	if(strlen(name) > 99){
+		name[99] = '\0';
+	}
 	strcpy(temp -> name, name);
 	temp -> id = c_d;
 	temp -> next = NULL;
@@ -129,10 +135,20 @@ void copy_file(int sock, char *fi){
 		while (*size > 0) {
 			if(*size < 512){
 				r.read(buffer, *size);
-				sendd(sock, buffer, *size);
+				if(sendd(sock, buffer, *size) == -1){
+					r.close();
+					close(sock);
+					sleep(1);
+					return;
+				}
 			}else{
 				r.read(buffer, 512);
-				sendd(sock, buffer, 512);
+				if(sendd(sock, buffer, 512) == -1){
+					r.close();
+					close(sock);
+					sleep(1);
+					return;
+				}
 			}
 			*size -= 512;
 		}
@@ -143,9 +159,13 @@ void *send_file(void *arg){
 	sleep(0.5);
 	int sock = connect_sock(ip, "4999");
 	if(sock == 0){
+		sleep(1);
 		cout << "Try again !!!" << endl;
 		sock = connect_sock(ip, "4999");
 		//return NULL;
+	}
+	if(sock == 0){
+		return NULL;
 	}
 	char *fil = (char *)arg;
 	copy_file(sock, fil);

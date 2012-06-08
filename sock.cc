@@ -48,12 +48,13 @@ void get_ip(char *buf){
 	inet_ntop(AF_INET, (struct sockaddr *)&add, buf, INET_ADDRSTRLEN);
     printf("his address = %s\n", buf);
 }
-void sendd(int new1, char *buff, int n){
+int sendd(int new1, char *buff, int n){
 	if(send(new1, buff, n, 0) == -1){
 		perror("ERROR!\n");
 		close(new1);
-		exit(0);	
+		return -1;	
 	}
+	return 0;
 }
 int connect_sock(char *ip, char *port){
 	struct addrinfo hints, *res;
