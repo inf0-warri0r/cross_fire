@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <gtkmm.h>
-#include <gtkmm.h>
+
 #include "recc.cc"
 #include "gui.cc"
 
@@ -65,15 +65,15 @@ window_download::~window_download()
 void window_download::on_button_close()
 {
 	progress_download.set_fraction(0.0);
+	set_stop();
     hide();
 }
 void window_download::update_progress(double fraction){
-	cout << "--------------> " << fraction << endl;
+
 	double b = progress_download.get_fraction();
 	cout << "====   " << b << endl;
-	
 	progress_download.set_fraction(fraction);
-	while (g_main_context_iteration(NULL, FALSE));
+	//while (g_main_context_iteration(NULL, FALSE));
 	progress_download.show();
 }
 void window_download::set_file(int id){
@@ -81,9 +81,12 @@ void window_download::set_file(int id){
 }
 void window_download::on_button_download(){
 	cout << "aa " << f_id << endl;
+	button_download.set_sensitive(true);
 	download(f_id, set_tit);
 }
-
+void window_download::set_dowload_sen(bool enable){
+	button_download.set_sensitive(enable);
+}
 
 
 window_connect::window_connect() :
@@ -99,17 +102,23 @@ window_connect::window_connect() :
 	{
 	set_title("inf0_warri0r");
 	set_border_width(5);
-	set_default_size(500, 200);
+	set_default_size(300, 100);
 	//set_resizable(false);
 	add(box_main);
+	scrwin_lip.add(text_lip);
+	scrwin_lip.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER );
 	
-	tabel_buttons.set_homogeneous(true);
+	scrwin_rip.add(text_rip);
+	scrwin_rip.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_NEVER);
+	
+	tabel_buttons.set_homogeneous(false);
 	box_main.pack_start(tabel_buttons, Gtk::PACK_SHRINK);
 	tabel_buttons.attach(label_head, 0, 2, 0, 1);
 	tabel_buttons.attach(label_lip, 0, 1, 1, 2);
+	tabel_buttons.attach(scrwin_lip, 1, 2, 1, 2);
+
 	tabel_buttons.attach(label_rip, 0, 1, 2, 3);
-	tabel_buttons.attach(text_lip, 1, 2, 1, 2);
-	tabel_buttons.attach(text_rip, 1, 2, 2, 3);
+	tabel_buttons.attach(scrwin_rip, 1, 2, 2, 3);
 	tabel_buttons.attach(button_connect, 0, 2, 3, 4);
 	
 	button_connect.signal_clicked().connect( sigc::mem_fun(*this,
@@ -139,7 +148,7 @@ void window_connect::on_button_connect(){
 window_main::window_main() :
 
 	
-	box_form(Gtk::ORIENTATION_VERTICAL, 0),
+	//box_form(Gtk::ORIENTATION_VERTICAL, 0),
 	box_views(Gtk::ORIENTATION_HORIZONTAL, 0),
 	//box_buttons(Gtk::ORIENTATION_HORIZONTAL, 0),
 	box_buttons(Gtk::BUTTONBOX_END),
@@ -151,7 +160,7 @@ window_main::window_main() :
 	set_title("inf0_warri0r");
 	set_border_width(5);
 	set_default_size(500, 600);
-
+	//set_resizable(false);
 	add(box_main);
 	
 	button_in.signal_clicked().connect( sigc::mem_fun(*this,
@@ -166,7 +175,7 @@ window_main::window_main() :
 	box_buttons.pack_start(button_in);
 	box_buttons.pack_start(button_recv);
 	box_buttons.pack_start(button_connect);
-	box_main.pack_start(box_buttons);  
+	box_main.pack_start(box_buttons, Gtk::PACK_SHRINK);  
 	
 	tm_dirs = Gtk::ListStore::create(columns);
 	tv_dirs.set_model(tm_dirs);
@@ -195,6 +204,9 @@ window_main::window_main() :
 
 window_main::~window_main()
 {
+	send_msg(-3);
+	sleep(0.5);
+	close_sock();
 }
 
 void window_main::on_button_recv(){
@@ -203,8 +215,9 @@ void window_main::on_button_recv(){
 	iter = ts_files->get_selected();
 	if(iter){
 		Gtk::TreeModel::Row row = *iter;
-		
+		w.set_title("download");
 		w.set_file(row[columns.id] - 1);
+		w.update_progress(0.0);
 		w.show();
 	}
 }
@@ -214,11 +227,13 @@ void window_main::on_button_dir(){
 	if(iter){
 		Gtk::TreeModel::Row row = *iter;
 		cd((row[columns.id]*(-1)) - 3);
+		reset();
 		tm_dirs -> clear();
 		tm_files -> clear();
 		add_data_dirs();
 		add_data_files();
 	}else{
+		reset();
 		tm_dirs -> clear();
 		tm_files -> clear();
 		add_data_dirs();
@@ -270,13 +285,18 @@ window_download *window_main::get_ref(){
 window_download *w;
 void set_tit(double f, bool done){
 	if(!done){
+		w -> set_title("downloading...");
 		w -> update_progress(f);
+		w -> set_dowload_sen(false);
 		w -> show();
-		w -> set_sensitive(false);
+		//w -> set_sensitive(false);
+		
 	}else{
 		w -> update_progress(1.0);
-		w -> set_sensitive(true);
+		//w -> set_sensitive(true);
 		w -> set_title("done");
+		w -> set_dowload_sen(true);
+		//w -> show();
 	}
 }
 int main(int argc, char* argv[]){

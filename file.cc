@@ -9,7 +9,6 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <dirent.h>
-#include <sys/stat.h>
 #include <pthread.h>
 #include <time.h>
 
@@ -105,9 +104,9 @@ void send_names(int sock){
 	char s_buf[4];
 	int *size = (int *)s_buf;
 	*size = c_f * sizeof(files);
-	sendd(new1, s_buf, 4);
+	if(sendd(new1, s_buf, 4) == -1) return;
 	while(p != NULL){
-		sendd(new1, (char *)p, sizeof(files));
+		if(sendd(new1, (char *)p, sizeof(files)) == -1) return;
 		p = p -> next;
 	}
 }
@@ -129,7 +128,7 @@ void copy_file(int sock, char *fi){
 	int* size = (int *)s_buf;
 	*size = statbuf.st_size;
 	r.seekg(0, std::ios::beg);
-	sendd(sock, s_buf, 4);
+	if(sendd(sock, s_buf, 4) == -1) return;
 	char buffer[512];
 	if (r.is_open()) {
 		while (*size > 0) {
@@ -172,16 +171,17 @@ void *send_file(void *arg){
 	close(sock);
 	return NULL;
 }
-void send_dirs(int sock){
+int send_dirs(int sock){
 	char s_buf[4];
 	int *size = (int *)s_buf;
 	*size = c_d * sizeof(dirs);
-	sendd(new1, s_buf, 4);
+	if(sendd(new1, s_buf, 4) == -1) return -1;
 	dirs *p2 = st2;
 	while(p2 != NULL){
-		sendd(new1, (char *)p2, sizeof(dirs));
+		if(sendd(new1, (char *)p2, sizeof(dirs)) == -1) return -1; 
 		p2 = p2 -> next;
 	}
+	return 0;
 }
 char *check(int id){
 	files *p = st;
@@ -207,6 +207,9 @@ void reset(){
 	c_f = c_d = 0;
 }
 int main(){
+	
+	start:
+	cout << "stoped :" << endl;
 	chdir("/home/omega/dwhelper");
 	new1 = create_sock(3999);
 	if(new1 == 0) return 1;
@@ -222,11 +225,14 @@ int main(){
 
 		if(*size == -1)
 			send_dirs(new1);
+			
 		else if(*size == -2)
 			send_names(new1);
 		else if(*size == -3){
 			close(new1);
-			exit(0);
+			sleep(0.5);
+			reset();
+			goto start;
 		}else if(*size < -3){
 
 			int x = *size;

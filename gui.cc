@@ -6,6 +6,7 @@ public:
   void update_progress(double fraction);
   void set_file(int id);
   bool on_timeout();
+  void set_dowload_sen(bool enable);
 protected:
   void on_button_recv();
   void on_button_dir();
@@ -38,6 +39,7 @@ class window_connect : public Gtk::Window{
 public:
   window_connect();
   virtual ~window_connect();
+  
 protected:
   void on_button_connect();
   void on_button_close();
@@ -54,7 +56,8 @@ protected:
   Gtk::VBox box_main;
   
   Gtk::Table tabel_buttons;
-  
+  Gtk::ScrolledWindow scrwin_lip;
+  Gtk::ScrolledWindow scrwin_rip;
   Gtk::Button button_connect;
   Gtk::Button button_close;
   
@@ -95,7 +98,6 @@ protected:
   Gtk::Label label_rip; 
   
   
-  Gtk::HBox box_form;
   Gtk::HBox box_views;
   Gtk::HButtonBox box_buttons;
   Gtk::VBox box_main;

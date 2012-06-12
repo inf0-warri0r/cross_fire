@@ -17,10 +17,11 @@
 using namespace std;
 
 char *r_ip;
-struct sockaddr_in ad, add;
 
 int create_sock(int port){
 	int sock;
+	int yes = 1;
+	struct sockaddr_in ad, add;
 	if(!(sock = socket(AF_INET, SOCK_STREAM, 0))){
 		printf("ERROR : error creating socket\n");
 	}
@@ -29,6 +30,7 @@ int create_sock(int port){
 	ad.sin_addr.s_addr = INADDR_ANY;
 	ad.sin_port = htons(port);
 
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 	bind(sock, (struct sockaddr *)&ad, sizeof(ad));
 	listen(sock, 1);
 
@@ -44,10 +46,7 @@ int create_sock(int port){
 	if(close(sock) == -1) perror("ERROR!\n");
 	return new1;
 }
-void get_ip(char *buf){
-	inet_ntop(AF_INET, (struct sockaddr *)&add, buf, INET_ADDRSTRLEN);
-    printf("his address = %s\n", buf);
-}
+
 int sendd(int new1, char *buff, int n){
 	if(send(new1, buff, n, 0) == -1){
 		perror("ERROR!\n");
@@ -57,18 +56,30 @@ int sendd(int new1, char *buff, int n){
 	return 0;
 }
 int connect_sock(char *ip, char *port){
-	struct addrinfo hints, *res;
+	struct addrinfo hints, *res, *p;
 	
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-
+	int sock;
 	getaddrinfo(ip, port, &hints, &res);
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(connect(sock, res -> ai_addr, res -> ai_addrlen) == -1){
-		perror("error\n");
-		return 0;	
+	for(p = res; p != NULL; p = p->ai_next) {
+	
+		if((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
+			perror("error\n");
+			continue;
+		}
+		if(connect(sock, p -> ai_addr, p -> ai_addrlen) == -1){
+			perror("error\n");
+			continue;	
+		}
+		break;
 	}
+	if (p == NULL) {
+		fprintf(stderr, "client: failed to connect\n");
+		return 0;
+	}
+
 	return sock;
 }
 int rec(int sock1, char *msg, int n){

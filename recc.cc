@@ -43,6 +43,7 @@ dirs *st2 = NULL;
 
 int c_f = 0;
 int c_d = 0;
+bool stop = false;
 
 void add_f(char *name, int size){
 	files *temp = (files *)malloc(sizeof(files));
@@ -129,12 +130,9 @@ int Size;
 int S;
 void *update(void *arg){
 	do{
-		if(Size >= 1)
-			pf((1.0/(double)S)*(S - Size), false);
-		else pf(1.0, false);
+		pf((1.0*(S - Size))/(double)S, false);
 		sleep(1);
-	}while(Size > 0);
-	pf(1.0, true);
+	}while(Size > 512);
 	return NULL;
 }
 void re_f(int sock, char *name){
@@ -154,8 +152,15 @@ void re_f(int sock, char *name){
 			int cc = rec(sock, buffer, 512);
 			w.write(buffer, cc);
 			Size -= cc;
-			cout << cc << endl;
-			//sleep(0.5);
+			//cout << cc << endl;
+
+			if(stop){ 
+				Size = 0;
+				sleep(1);
+				close(sock);
+				w.close();
+				return;
+			}
 		}
 	}
 	close(sock);
@@ -206,6 +211,7 @@ void download(int num, void (*progress_func)(double t, bool done)){
 	char *c2 = check(num);
 	pf = progress_func;
 	cout << "cc " << num << endl;
+	stop = false;
 	if(c2 != NULL){
 		pthread_create(&pth2, NULL, rec_file, (void *)c2);
 		//pthread_join( pth2, NULL);
@@ -220,6 +226,12 @@ dirs *re_st2(){
 	send_msg(-1);
 	get_dirs();
 	return st2;
+}
+int close_sock(){
+	if(sock1 == 0) close(sock1);
+}
+void set_stop(){
+	stop = true;
 }
 int init(char *r_ip, char *l_ip){
 	sock1 = connect_sock(r_ip, "3999");
