@@ -1,27 +1,17 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <pthread.h>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <string.h>
-#include <pthread.h>
 #include <gtkmm.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #define  PORT_COM       3999
 #define  PORT_FILE      4999
 #define  PORT_COM_STR  "3999"
 
-#include "sock.cc"
-
 using namespace std;
 
+sem_t mutex;
 int sock1;
 void (*pf)(double t, bool done);
 int Size;
@@ -155,18 +145,20 @@ void recv_f(int sock, char *name){
 			int cc = rec(sock, buffer, 512);
 			w.write(buffer, cc);
 			Size -= cc;
-
+			sem_wait(&mutex); 
 			if(stop){
 				pthread_cancel(pth2);
 				pf(0.0, true);
-				sleep(1);
+				//sleep(1);
 				close(sock);
 				w.close();
+				sem_post(&mutex);
 				return;
 			}
+			sem_post(&mutex);
 		}
 	}
-	Size = 0;
+	pthread_cancel(pth2);
 	close(sock);
 	w.close();
 	pf(1.0, true);
@@ -242,9 +234,12 @@ void close_sock(){
 	if(sock1 == 0) close(sock1);
 }
 void set_stop(){
+	sem_wait(&mutex); 
 	stop = true;
+	sem_post(&mutex); 
 }
 int init(char *r_ip, char *l_ip){
+	sem_init(&mutex, 0, 2);
 	sock1 = connect_sock(r_ip, PORT_COM_STR);
 	if(sock1 == 0) return 0;
 	sendd(sock1, l_ip, 16);

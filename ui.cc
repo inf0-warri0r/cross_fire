@@ -1,19 +1,21 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
 #include <gtkmm.h>
 
-#include "recc.cc"
-#include "gui.cc"
-
 using namespace std;
-bool done = true;
+
 string save_dir;
 window_download *w_download;
 window_main *w_main;
 
-void set_tit(double t, bool done);
-
+void set_tit(double f, bool done){
+	if(!done){
+		w_download -> update_progress(f);
+		w_download -> show();
+	}else{
+		w_download -> set_title("done");
+		w_download -> update_progress(f);
+		w_download -> set_dowload_sen(true);
+	}
+}
 window_download::window_download() :
 
 	label_head("inf0_warri0r", Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER),
@@ -89,6 +91,11 @@ void window_download::set_file(int id){
 	f_id = id;
 }
 void window_download::on_button_download(){
+	set_tit(0.0, false);
+	w_download -> set_title("downloading...");
+	w_download -> update_progress(0.0);
+	w_download -> set_dowload_sen(false);
+	w_download -> show();
 	download(save_dir, f_id, set_tit);
 }
 void window_download::on_button_choose(){
@@ -96,7 +103,6 @@ void window_download::on_button_choose(){
           Gtk::FILE_CHOOSER_ACTION_CREATE_FOLDER);
 	  dialog.set_transient_for(*this);
 
-	  //Add response buttons the the dialog:
 	  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	  dialog.add_button("Select", Gtk::RESPONSE_OK);
 
@@ -325,28 +331,13 @@ void window_main::add_data_files(){
 		cout << "Error: " << Message;
 	}
 }
-window_download *window_main::get_ref_download(){
+window_download* window_main::get_ref_download(){
 	return &w;
 }
-void set_tit(double f, bool done){
-	if(!done){
-		w_download -> set_title("downloading...");
-		w_download -> update_progress(f);
-		w_download -> set_dowload_sen(false);
-		w_download -> show();
-		
-	}else{
-		w_download -> set_title("done");
-		w_download -> update_progress(f);
-		w_download -> set_dowload_sen(true);
-	}
+void set_windows(window_main *mw){
+	w_main = mw;
+	w_download = mw -> get_ref_download();
 }
-int main(int argc, char* argv[]){
-  save_dir = getenv ("HOME");
-  Gtk::Main kit(argc, argv);
-	window_main window;
-	w_main = &window;
-	w_download = window.get_ref_download();
-  kit.run(window);
-  return 0;
+void set_save_dir(char *sd){
+	save_dir = sd;
 }

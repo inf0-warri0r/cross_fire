@@ -1,16 +1,11 @@
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <stdlib.h>
-#include <fstream>
+#include <string.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <netdb.h>
-#include <string.h>
-#include <dirent.h>
-#include <sys/stat.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 

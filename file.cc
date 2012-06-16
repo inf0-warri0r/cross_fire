@@ -1,23 +1,16 @@
 #include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <stdlib.h>
 #include <fstream>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/stat.h>
+#include <stdio.h>
 #include <string.h>
 #include <dirent.h>
 #include <pthread.h>
-#include <time.h>
 
 #define  PORT_COM       3999
 #define  PORT_FILE      4999
 #define  PORT_FILE_STR "4999"
 
-#include "sock.cc"
-
+#include "sock.h"
 
 using namespace std;
 
@@ -134,6 +127,7 @@ int send_file_names(int sock){
 		if(sendd(clint_sock, (char *)p, sizeof(files)) == -1) return -1;
 		p = p -> next;
 	}
+	return 0;
 }
 int send_dir_names(int sock){
 	char s_buf[4];
@@ -266,7 +260,7 @@ int main(){
 	while(1){
 		char msg[4];
 		int *commend_num = ((int *)msg);
-		if(rec(clint_sock, msg, 4) == -1){
+			if(rec(clint_sock, msg, 4) == -1){
 				refresh();
 				goto start;
 			}
