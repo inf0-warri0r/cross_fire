@@ -13,12 +13,11 @@ protected:
   void on_button_connect();
   void on_button_download();
   void on_button_close();
+  void on_button_choose();
   
   int f_id;
-  
+   
   Gtk::Label label_head; 
-  Gtk::Label label_pre1; 
-  Gtk::Label label_pre2; 
   Gtk::Label label_head2; 
   
   Gtk::HBox box_head;
@@ -28,7 +27,8 @@ protected:
   Gtk::VBox box_main;
 
   Gtk::ProgressBar progress_download;
-
+    
+  Gtk::Button button_choose;
   Gtk::Button button_download;
   Gtk::Button button_close;
   Gtk::MessageDialog ms;
@@ -71,12 +71,14 @@ public:
   virtual ~window_main();
   void add_data_dirs();
   void add_data_files();
-  window_download *get_ref();
+  window_download *get_ref_download();
+  window_download *get_ref_main();
 protected:
   void on_button_recv();
   void on_button_dir();
   void on_button_connect();
-
+  void on_button_disconnect();
+  
   class ModelColumns : public Gtk::TreeModel::ColumnRecord
   {
   public:
@@ -91,13 +93,9 @@ protected:
 
   ModelColumns columns;
   
-  Gtk::Label label_head; 
-  Gtk::Label label_dum1; 
-  Gtk::Label label_dum2; 
-  Gtk::Label label_lip; 
-  Gtk::Label label_rip; 
+  Gtk::Image image_head;
   
-  
+  Gtk::HBox box_headder;
   Gtk::HBox box_views;
   Gtk::HButtonBox box_buttons;
   Gtk::VBox box_main;
@@ -108,6 +106,7 @@ protected:
   
   Gtk::TreeView tv_dirs;
   Gtk::TreeView tv_files;
+  
   Glib::RefPtr<Gtk::ListStore> tm_dirs;
   Glib::RefPtr<Gtk::ListStore> tm_files;
   Glib::RefPtr<Gtk::TreeSelection> ts_dirs;
@@ -116,6 +115,7 @@ protected:
   Gtk::Button button_in;
   Gtk::Button button_recv;
   Gtk::Button button_connect;
+  Gtk::Button button_disconnect;
   window_download w;
   window_connect con;
 };
