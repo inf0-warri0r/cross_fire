@@ -10,7 +10,7 @@ them using "synaptic package manager". the use "make" command to compile.
 usage:
 -------
 
-run the "file" binary using terminal in the computer you which has the files you need to share. then run "client_main" in other computer. in the window you get use the connect button to connect to the computer which is running "file" (use your ip and the other computer's ip). then click "get dir" button. you will have two lists of files and folders. select folder names and use "get dir" to navigate. use "download" button to download.
+run the "file-server" binary using terminal in the computer which has the files you need to share. then run "client_main" in other computer. in the window you get use the "connect" button to connect to the computer which is running "file_server" (use your ip and the other computer's ip). then click "get in" button. you will have two lists of files and folders. select folder names and use "get in" to navigate. use "download" button to download.
 
 use "disconnect" button to disconnect you are done.
 
