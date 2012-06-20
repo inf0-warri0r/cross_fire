@@ -1,3 +1,9 @@
+/*
+*Author :Tharindra Galahena
+*Project:cross fire - network file sharing application for linux
+*Date   :20/06/2012
+*/
+
 #include <iostream>
 #include <string.h>
 #include <stdio.h>

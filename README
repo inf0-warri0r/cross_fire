@@ -1,0 +1,21 @@
+cross fire - network file sharing application for linux
+=========================================================
+
+compilation:
+------------
+
+you need "libgtkmm2.4-dev" libraries to compile. install 
+them using "synaptic package manager". the use "make" command to compile.
+ 
+usage:
+-------
+
+run the "file" binary using terminal in the computer you which has the files you need to share. then run "client_main" in other computer. in the window you get use the connect button to connect to the computer which is running "file" (use your ip and the other computer's ip). then click "get dir" button. you will have two lists of files and folders. select folder names and use "get dir" to navigate. use "download" button to download.
+
+use "disconnect" button to disconnect you are done.
+
+more inf0:
+-----------
+
+	tcg.galahena@gmail.com
+	http://www.inf0warri0r.blogspot.com 

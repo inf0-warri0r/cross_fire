@@ -1,10 +1,16 @@
-#include "recc.cc"
+/*
+*Author :Tharindra Galahena
+*Project:cross fire - network file sharing application for linux
+*Date   :20/06/2012
+*/
+
+#include "file_handle.cc"
 
 void add_to_file_queue(char *name, int size);
 void add_to_dir_queue(char *name);
 void get_files_list();
 void get_dirs_list();
-void send_msg(int m);
+int send_msg(int m);
 char *check(int id);
 void reset();
 void cd(int num);

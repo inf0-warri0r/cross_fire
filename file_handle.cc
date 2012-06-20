@@ -1,3 +1,9 @@
+/*
+*Author :Tharindra Galahena
+*Project:cross fire - network file sharing application for linux
+*Date   :20/06/2012
+*/
+
 #include <iostream>
 #include <fstream>
 #include <string.h>
@@ -16,20 +22,6 @@ int sock1;
 void (*pf)(double t, bool done);
 int Size;
 int S;
-
-typedef struct files{
-	int id;
-	char name[100];
-	int size;
-	struct files *next;
-}files ;
-
-typedef struct dirs{
-	int id;
-	char name[100];
-	struct dirs *next;
-}dirs ;
-
 
 files *f = NULL;
 files *st_file = NULL;
@@ -116,11 +108,11 @@ void get_dirs_list(){
 		free(buffer);
 	}
 }
-void send_msg(int m){
+int send_msg(int m){
 	char msg[4];
 	int *s = (int *)msg;
 	*s = m;
-	sendd(sock1, msg, 4);
+	return sendd(sock1, msg, 4);
 }
 void *update(void *arg){
 	do{
@@ -178,19 +170,6 @@ void *recv_file(void *arg){
 	return NULL;
 }
 void reset(){
-	/*
-	files *p = st;
-	while(p != NULL){
-		files *q = p;
-		p = p -> next;
-		free(q);
-	}
-	dirs *p2 = st2;
-	while(p2 != NULL){
-		dirs *q2 = p2;
-		p2 = p2 -> next;
-		free(q2);
-	}*/
 	f = NULL;
 	d = NULL;
 	st_file = NULL;
@@ -221,12 +200,12 @@ void download(string dir, int num, void (*progress_func)(double t, bool done)){
 	}
 }
 files *refresh_files_queue(){
-	send_msg(-2);
+	if(send_msg(-2) == -1) return NULL;
 	get_files_list();
 	return st_file;
 }
 dirs *refresh_dirs_queue(){
-	send_msg(-1);
+	if(send_msg(-1) == -1) return NULL;
 	get_dirs_list();
 	return st_dir;
 }

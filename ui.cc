@@ -1,3 +1,9 @@
+/*
+*Author :Tharindra Galahena
+*Project:cross fire - network file sharing application for linux
+*Date   :20/06/2012
+*/
+
 #include <gtkmm.h>
 
 using namespace std;
@@ -18,7 +24,7 @@ void set_tit(double f, bool done){
 }
 window_download::window_download() :
 
-	label_head("inf0_warri0r", Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER),
+	label_head("Save path :", Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER),
 	label_head2(save_dir, Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER),
 	box_head(Gtk::ORIENTATION_VERTICAL, 0),
 	box_pre(Gtk::ORIENTATION_HORIZONTAL, 0),
@@ -77,12 +83,11 @@ void window_download::on_button_close()
 	progress_download.set_fraction(0.0);
 	button_download.set_sensitive(true);
 	set_stop();
+	sleep(1);
     hide();
 }
 void window_download::update_progress(double fraction){
 
-	double b = progress_download.get_fraction();
-	cout << "====   " << b << endl;
 	progress_download.set_fraction(fraction);
 	while (g_main_context_iteration(NULL, FALSE));
 	progress_download.show();
@@ -115,6 +120,7 @@ void window_download::on_button_choose(){
 }
 void window_download::set_dowload_sen(bool enable){
 	button_download.set_sensitive(enable);
+	button_choose.set_sensitive(enable);
 }
 
 
@@ -167,8 +173,7 @@ void window_connect::on_button_connect(){
 	cout << rip -> get_text() << endl;
 	
 	int ok = init((char *)(rip -> get_text()).c_str(), 
-				 (char *)(lip -> get_text()).c_str());
-	//int ok = init("127.0.0.1","127.0.0.1");			  
+				 (char *)(lip -> get_text()).c_str());			  
 	if(ok == 1){
 		hide();
 	}
@@ -181,7 +186,7 @@ window_main::window_main() :
 	box_views(Gtk::ORIENTATION_HORIZONTAL, 0),
 	box_buttons(Gtk::BUTTONBOX_CENTER),
 	box_main(false, 0),
-	button_in("goto dir"),
+	button_in("get in"),
 	button_recv("download"),
 	button_connect("connect"),
 	button_disconnect("disconnect")
@@ -291,44 +296,46 @@ void window_main::on_button_disconnect(){
 }
 void window_main::add_data_dirs(){
 	dirs *p = refresh_dirs_queue();
-	try {
-		Gtk::TreeModel::Row row;
-		while(p != NULL){
-			cout << p -> id << endl;
-			row = *(tm_dirs->append());
-			row[columns.id] = p -> id + 1;
-			row[columns.name] = p -> name;
-			p = p -> next;
+	if(p != NULL){
+		try {
+			Gtk::TreeModel::Row row;
+			while(p != NULL){
+				row = *(tm_dirs->append());
+				row[columns.id] = p -> id + 1;
+				row[columns.name] = p -> name;
+				p = p -> next;
+			}
+		}catch(const char* Message){
+			cout << "Error: " << Message;
 		}
-	}catch(const char* Message){
-		cout << "Error: " << Message;
 	}
 }
 void window_main::add_data_files(){
 	files *p = refresh_files_queue();
-	try{
-		Gtk::TreeModel::Row row;
-		while(p != NULL){
-			cout << p -> id << endl;
-			row = *(tm_files->append());
-			row[columns.id] = p -> id + 1;
-			row[columns.name] = p -> name;
-			stringstream size;
-			
-			if(p -> size >= 1024*1024){
-				size << p -> size/(1024*1024); 
-				row[columns.size] = size.str() + " MB";
-			}else if(p -> size >= 1024){
-				size << p -> size/1024 ;
-				row[columns.size] = size.str() + " kB";
-			}else{
-				size << p -> size;
-				row[columns.size] = size.str() + " bytes";
+	if(p != NULL){
+		try{
+			Gtk::TreeModel::Row row;
+			while(p != NULL){
+				row = *(tm_files->append());
+				row[columns.id] = p -> id + 1;
+				row[columns.name] = p -> name;
+				stringstream size;
+				
+				if(p -> size >= 1024*1024){
+					size << p -> size/(1024*1024); 
+					row[columns.size] = size.str() + " MB";
+				}else if(p -> size >= 1024){
+					size << p -> size/1024 ;
+					row[columns.size] = size.str() + " kB";
+				}else{
+					size << p -> size;
+					row[columns.size] = size.str() + " bytes";
+				}
+				p = p -> next;
 			}
-			p = p -> next;
+		}catch(const char* Message){
+			cout << "Error: " << Message;
 		}
-	}catch(const char* Message){
-		cout << "Error: " << Message;
 	}
 }
 window_download* window_main::get_ref_download(){
